@@ -1,23 +1,25 @@
 # Introduction
 
-IMDB does not provide a free API to search their data. You may come across some IMDB API's, but they resort to screen scraping techniques <http://www.deanclatworthy.com/imdb/> here,  <http://imdbapi.poromenos.org/> here and <http://code.google.com/p/imdb-api/> here).  The good news is that IMDB does provide their  <http://www.imdb.com/interfaces> data in flat text files released every Friday.  The bad news is that these files are formatted just to be difficult to use.  <http://www.reddit.com/r/programming/comments/6m33s/why\_does\_imdb\_restrain\_an\_official\_api\_but/> Love this question.)  Thanks IMDB!
+IMDB does not provide a free API to search their data. You may come across some IMDB API's, but they resort to screen scraping techniques [here](http://www.deanclatworthy.com/imdb/),  [here](<http://imdbapi.poromenos.org/) and [here](<http://code.google.com/p/imdb-api/).  The good news is that IMDB does provide their [data](http://www.imdb.com/interfaces) in flat text files released every Friday.  The bad news is that these files are formatted just to be difficult to use.  Love this [question](http://www.reddit.com/r/programming/comments/6m33s/why\_does\_imdb\_restrain\_an\_official\_api\_but).  Thanks IMDB!
 
 ## Where to get the data
 
 The files can be download from the following FTP servers:
 
-ftp.fu-berlin.de (Germany)
+* [ftp.fu-berlin.de (Germany)](ftp://ftp.fu-berlin.de/pub/misc/movies/database)
 
-    <ftp://ftp.fu-berlin.de/pub/misc/movies/database/>
+* [ftp.funet.fi (Finland)](ftp://ftp.funet.fi/pub/mirrors/ftp.imdb.com/pub/)
 
-ftp.funet.fi (Finland)
+* [ftp.sunet.se (Sweden)](ftp://ftp.sunet.se/pub/tv+movies/imdb)
 
-    <ftp://ftp.funet.fi/pub/mirrors/ftp.imdb.com/pub/>
+You can mirror the files with this command:
 
-ftp.sunet.se (Sweden)
+    wget --mirror ftp://ftp.fu-berlin.de/pub/misc/movies/database
+    
+This will place the files in the current directory under:
 
-    <ftp://ftp.sunet.se/pub/tv+movies/imdb/>
-
+    ftp.fu-berlin.de/pub/misc/movies/database
+   
 ## Source file Formats
 
 The files are formatted in a general way:
@@ -29,27 +31,23 @@ The files are formatted in a general way:
 - Optionally more data and instructions
 
 
-The "real" data is between the "header line" and the "separator line.
+The "real" data is between the **header line** and the **separator line**.
 
 The IMDB site uses an integer as a primary key.  Of course, this information is missing in the text files.  They use the actual “title” of the movie as the primary key throughout all of the files.
 
 For example:
 
-The Godfather -\> 68646
+    The Godfather -\> 68646
 
 URL to their Godfather site: <http://www.imdb.com/title/tt0068646>
 
-"Primary key" in the text files: “Godfather, The (1972)”
+    "Primary key" in the text files: “Godfather, The (1972)”
 
 # Getting Started
 
 ## Prerequisites
 
-The following programs, utilities and scripts are writing in Ruby, bash and other UNIX command line tools (e.g. sed, 
-"http://en.wikipedia.org/wiki/Awk" awk,  HYPERLINK
-"http://en.wikipedia.org/wiki/Grep" grep, etc.).  I have run all of
-these successfully on OS X, Linux (Ubuntu) and I’m sure they will work
-just fine under  HYPERLINK "http://www.cygwin.com/" Cygwin for Windows.
+The following programs, utilities and scripts are writing in Ruby, bash and other UNIX command line tools (e.g. sed, awk, grep, etc.).  I have run all of these successfully on OS X, Linux (Ubuntu) and I’m sure they will work just fine under Cygwin for Windows.
 
 ## Required Ruby Gems:
 
@@ -60,18 +58,25 @@ just fine under  HYPERLINK "http://www.cygwin.com/" Cygwin for Windows.
 
 ## Programs to Process the LAME IMDB Files
 
-The 1^st^ pass at reformatting the files gets them into
-one-record-per-line format that can be used for further processing.
+The 1st pass at reformatting the files gets them into **one-record-per-line** TAB delmited format that can be used for further processing.
 
-* movies.list.rb
+### movies.list.rb
 
-This program reformats the movies.list file into 7 columns
-(key,title,type,year,episode\_title,season,episode)
+This program reformats the movies.list file into 7 columns:
 
-* list\_cleaner.rb
+* key
+* title
+* type
+* year
+* episode_title
+* season
+* episode
 
-This program reformats the other files into 3 or more columns (key,
-title, data, data…)
+(The **movies.list** file is the "main" file we start processing.  )
+
+### list_cleaner.rb
+
+This program reformats the other files into 3 or more columns (key, title, data, data…)
 
 The field outputs of the files are explained in each file section below.
 
@@ -79,11 +84,9 @@ The field outputs of the files are explained in each file section below.
 
 Below is a table with each file and type “type” of file.  File names in red indicate these are people associated with a movie.  In that case it implies a many-to-many relationship.  File names in gray have not been considered for processing at this time.
 
+# IMDB Files
 
-
-## IMDB Files
-
-### MOVIES.LIST - The Main File
+## MOVIES.LIST - The Main File
 
 Unfortunately, the movies.list file also contains TV shows and TV episode data.  On a good note, the data is formatted with 1 record per line.  The records are TAB separated and follow this format:
 
@@ -92,41 +95,33 @@ Unfortunately, the movies.list file also contains TV shows and TV episode data.�
 How do you know if it is a movie vs. TV?  All TV show names are in
 double quotes:
 
-"Cheers" (1982)                                         1982-1993
-"Cheers" (1982) {'I' on Sports (\#6.2)}                  1987
-"Cheers" (1982) {2 Good 2 Be 4 Real (\#4.7)}             1985
+    "Cheers" (1982)                                         1982-1993   
+    "Cheers" (1982) {'I' on Sports (\#6.2)}                  1987
+    "Cheers" (1982) {2 Good 2 Be 4 Real (\#4.7)}             1985
 
 You will notice that the 1st line in the section of "Cheers" does not contain any episode data.  Episode data is placed between curly braces.  If the curly braces are missing in the title, this indicates that this is the TV show entry where the year will usually be a year range.  If curly braces are present, the line will have episode information.
 
 So, parsing this file we will end up with 3 types of "things":
 
-
 - Movies/Videos
 - TV shows
 - TV episodes
 
-
 You will also see entries that have (TV) and (V) at the end of the title.  These seem to indicate that is either a "made for TV movie" (TV) or a movie released to "video" (V).  There does not seem to be any rhyme or reason how many tabs are between the title and year/year-year fields.
 
-The movie.list.rb utility will take as input the movies.list file and reformat it with the following 7 fields:
+The movie.list.rb utility will take as input the movies.list file and reformat it with the following 7 fields: (Tab delimited)
 
-{key}\\t{title}\\{type}\\t{year}\\t{episode\_title}\\t{season}\\t{episode}\\n
+    {key}\t{title}\t{type}\t{year}\t{episode_title}\t{season}\t{episode}\n
 
 Where:
 
-{key} is the SHA1 sum of the 1^st^ field in the file, the title (This is the “key” used to reference the other files which use the title as the key.)
-
-{title} is the title of the entry, with TV episode information removed, if any
-
-{type} will be: 1 = Movie/Video, 2 = TV Show, 3 = TV Episode
-
-{year} will be either the year or the year range if it is a TV Show (type = 2)
-
-{episode\_title} is the title of the TV show epsiode
-
-{season} is the season of the episode 1..x
-
-{episode} is the episode number of the episode 1..x
+* {key} is the SHA1 sum of the 1^st^ field in the file, the title (This is the “key” used to reference the other files which use the title as the key.)
+* {title} is the title of the entry, with TV episode information removed, if any
+* {type} will be: 1 = Movie/Video, 2 = TV Show, 3 = TV Episode
+* {year} will be either the year or the year range if it is a TV Show (type = 2)
+* {episode_title} is the title of the TV show epsiode
+* {season} is the season of the episode 1..x
+* {episode} is the episode number of the episode 1..x
 
 For example:
 
@@ -136,11 +131,11 @@ It can process the file in less than 2 minutes.
 
 Here is the "Army of Darkness" line from movies.list and then from movies.txt:
 
-    grep "Army of Darkness (1992)" ../../../../DATA/imdb/movies.list | cat -vet
+    # grep "Army of Darkness (1992)" ../../../../DATA/imdb/movies.list | cat -vet
 
     Army of Darkness (1992)\^I\^I\^I\^I\^I1992\$
 
-    grep "Army of Darkness (1992)" data/movies.list.txt | cat -vet**
+    # grep "Army of Darkness (1992)" data/movies.list.txt | cat -vet**
 
     b8d3d50b3a16d00c7d8caeb8d22005e6c8e9db25\^IArmy of Darkness (1992)\^I1\^I1992\^I\^I0\^I0\$
 
@@ -162,36 +157,35 @@ You can see all of the years with this:
 
 You can do the same for the seasons and episode numbers (\$6 and \$7).
 
+## ACTORS.LIST - "THE ACTORS LIST"
 
-### ACTORS.LIST - "THE ACTORS LIST"
+## ACTRESSES.LIST - "THE ACTRESSES LIST"**
 
-**ACTRESSES.LIST - "THE ACTRESSES LIST"**
+## AKA-NAMES.LIST - "AKA NAMES LIST" – N/A**
 
-**AKA-NAMES.LIST - "AKA NAMES LIST" – N/A**
+## AKA-TITLES.LIST - "AKA TITLES LIST" – N/A**
 
-**AKA-TITLES.LIST - "AKA TITLES LIST" – N/A**
+## ALTERNATE-VERSIONS.LIST - "ALTERNATE VERSIONS LIST" – N/A**
 
-**ALTERNATE-VERSIONS.LIST - "ALTERNATE VERSIONS LIST" – N/A**
+## BIOGRAPHIES.LIST - "BIOGRAPHY LIST"**
 
-**BIOGRAPHIES.LIST - "BIOGRAPHY LIST"**
+## BUSINESS.LIST - "BUSINESS LIST" – N/A**
 
-**BUSINESS.LIST - "BUSINESS LIST" – N/A**
+## CERTIFICATES.LIST - "CERTIFICATES LIST" – N/A**
 
-**CERTIFICATES.LIST - "CERTIFICATES LIST" – N/A**
+## CINEMATOGRAPHERS.LIST - "THE CINEMATOGRAPHERS LIST"**
 
-**CINEMATOGRAPHERS.LIST - "THE CINEMATOGRAPHERS LIST"**
+## COLOR-INFO.LIST - "COLOR INFO LIST" – N/A**
 
-**COLOR-INFO.LIST - "COLOR INFO LIST" – N/A**
+## COMPLETE-CAST.LIST - "CAST COVERAGE TRACKING LIST" – N/A**
 
-**COMPLETE-CAST.LIST - "CAST COVERAGE TRACKING LIST" – N/A**
+## COMPLETE-CREW.LIST - "CREW COVERAGE TRACKING LIST" – N/A**
 
-**COMPLETE-CREW.LIST - "CREW COVERAGE TRACKING LIST" – N/A**
+## COMPOSERS.LIST - "THE COMPOSERS LIST"**
 
-**COMPOSERS.LIST - "THE COMPOSERS LIST"**
+## COSTUME-DESIGNERS.LIST - "THE COSTUME DESIGNERS LIST"**
 
-**COSTUME-DESIGNERS.LIST - "THE COSTUME DESIGNERS LIST"**
-
-**COUNTRIES.LIST - "COUNTRIES LIST"**
+## COUNTRIES.LIST - "COUNTRIES LIST"
 
 The countries.list file is formatted similarly to the movies.list file with one line per entry.  However, there may be duplicate entries for each movie!  For example:
 
@@ -223,57 +217,57 @@ Let's find out from what country "Army of Darkness" originates.  We will use th
 I see USA!
 
 
-**CRAZY-CREDITS.LIST - "CRAZY CREDITS"**
+## CRAZY-CREDITS.LIST - "CRAZY CREDITS"**
 
-**DIRECTORS.LIST - "THE DIRECTORS LIST"**
+## DIRECTORS.LIST - "THE DIRECTORS LIST"**
 
-**DISTRIBUTORS.LIST - "DISTRIBUTORS LIST" – N/A**
+## DISTRIBUTORS.LIST - "DISTRIBUTORS LIST" – N/A**
 
-**EDITORS.LIST - "THE EDITORS LIST"**
+## EDITORS.LIST - "THE EDITORS LIST"**
 
-**GENRES.LIST - "THE GENRES LIST"**
+## GENRES.LIST - "THE GENRES LIST"**
 
-**GERMAN-AKA-TITLES.LIST - "AKA TITLES LIST GERMAN" – N/A**
+## GERMAN-AKA-TITLES.LIST - "AKA TITLES LIST GERMAN" – N/A**
 
-**GOOFS.LIST - "GOOFS LIST"**
+## GOOFS.LIST - "GOOFS LIST"**
 
-**ISO-AKA-TITLES.LIST - "AKA TITLES LIST ISO" – N/A**
+## ISO-AKA-TITLES.LIST - "AKA TITLES LIST ISO" – N/A**
 
-**ITALIAN-AKA-TITLES.LIST - "AKA TITLES LIST ITALIAN" – N/A**
+## ITALIAN-AKA-TITLES.LIST - "AKA TITLES LIST ITALIAN" – N/A**
 
-**KEYWORDS.LIST - "THE KEYWORDS LIST"**
+## KEYWORDS.LIST - "THE KEYWORDS LIST"**
 
-**LANGUAGE.LIST - "LANGUAGE LIST"**
+## LANGUAGE.LIST - "LANGUAGE LIST"**
 
-**LASERDISC.LIST - "LASERDISC LIST" – N/A**
+## LASERDISC.LIST - "LASERDISC LIST" – N/A**
 
-**LITERATURE.LIST - "LITERATURE LIST" – N/A**
+## LITERATURE.LIST - "LITERATURE LIST" – N/A**
 
-**LOCATIONS.LIST - "LOCATIONS LIST"**
+## LOCATIONS.LIST - "LOCATIONS LIST"**
 
-**MISCELLANEOUS-COMPANIES.LIST - "MISCELLANEOUS COMPANY LIST" – N/A**
+## MISCELLANEOUS-COMPANIES.LIST - "MISCELLANEOUS COMPANY LIST" – N/A**
 
-**MISCELLANEOUS.LIST - "THE MISCELLANEOUS FILMOGRAPHY LIST" – N/A**
+## MISCELLANEOUS.LIST - "THE MISCELLANEOUS FILMOGRAPHY LIST" – N/A**
 
-**MOVIE-LINKS.LIST - "MOVIE LINKS LIST" – N/A**
+## MOVIE-LINKS.LIST - "MOVIE LINKS LIST" – N/A**
 
-**MOVIES.LIST - "MOVIES LIST" – See 1^st^ section**
+## MOVIES.LIST - "MOVIES LIST" – See 1^st^ section**
 
-**MPAA-RATINGS-REASONS.LIST - "MPAA RATINGS REASONS LIST"**
+## MPAA-RATINGS-REASONS.LIST - "MPAA RATINGS REASONS LIST"**
 
-**PLOT.LIST - "PLOT SUMMARIES LIST"**
+## PLOT.LIST - "PLOT SUMMARIES LIST"**
 
-**PRODUCERS.LIST - "THE PRODUCERS LIST"**
+## PRODUCERS.LIST - "THE PRODUCERS LIST"**
 
-**PRODUCTION-COMPANIES.LIST - "PRODUCTION COMPANIES LIST" – N/A**
+## PRODUCTION-COMPANIES.LIST - "PRODUCTION COMPANIES LIST" – N/A**
 
-**PRODUCTION-DESIGNERS.LIST - "THE PRODUCTION DESIGNERS LIST"**
+## PRODUCTION-DESIGNERS.LIST - "THE PRODUCTION DESIGNERS LIST"**
 
-**QUOTES.LIST - "QUOTES LIST" – N/A**
+## QUOTES.LIST - "QUOTES LIST" – N/A**
 
-**RATINGS.LIST - "MOVIE RATINGS REPORT" – N/A**
+## RATINGS.LIST - "MOVIE RATINGS REPORT" – N/A**
 
-**RELEASE-DATES.LIST - "RELEASE DATES LIST"**
+## RELEASE-DATES.LIST - "RELEASE DATES LIST"
 
 The release-dates.list file is formatted similarly to the movies.list file with one line per entry.  However, there may be duplicate entries for each movie!  For example:
 
@@ -288,9 +282,7 @@ The release-dates.list file is formatted similarly to the movies.list file with 
 
 It appears that every time the move is released it will get an entry in this file.  The Army of Darkness has 47 entries!
 
-
-The list\_cleaner.rb program will cleanup this list nicely:
-
+The list_cleaner.rb program will cleanup this list nicely:
 
     ./list\_cleaner.rb -c -f ../../../../DATA/imdb/release-dates.list \> data/release-dates.txt
 
@@ -312,21 +304,21 @@ Looking for Army of Darkness with the SHA1 key renders:
 
     b8d3d50b3a16d00c7d8caeb8d22005e6c8e9db25 Army of Darkness (1992) Canada:1 October 2002
 
-**RUNNING-TIMES.LIST - "RUNNING TIMES LIST"**
+## RUNNING-TIMES.LIST - "RUNNING TIMES LIST"**
 
-**SOUND-MIX.LIST - "SOUND-MIX LIST" – N/A**
+## SOUND-MIX.LIST - "SOUND-MIX LIST" – N/A**
 
-**SOUNDTRACKS.LIST - "SOUNDTRACKS LIST" – N/A**
+## SOUNDTRACKS.LIST - "SOUNDTRACKS LIST" – N/A**
 
-**SPECIAL-EFFECTS-COMPANIES.LIST - "SFXCO COMPANIES LIST" – N/A**
+## SPECIAL-EFFECTS-COMPANIES.LIST - "SFXCO COMPANIES LIST" – N/A**
 
-**TAGLINES.LIST - "TAG LINES LIST"**
+## TAGLINES.LIST - "TAG LINES LIST"**
 
-**TECHNICAL.LIST - "TECHNICAL LIST" – N/A**
+## TECHNICAL.LIST - "TECHNICAL LIST" – N/A**
 
-**TRIVIA.LIST - "FILM TRIVIA" – N/A**
+## TRIVIA.LIST - "FILM TRIVIA" – N/A**
 
-**WRITERS.LIST - "THE WRITERS LIST"**
+## WRITERS.LIST - "THE WRITERS LIST"**
 
 # Make a Real Database
 
