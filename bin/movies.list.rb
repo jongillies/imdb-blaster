@@ -4,6 +4,7 @@ require 'rubygems'
 require 'optparse'
 require 'ostruct'
 require 'digest/sha1'
+require 'date'
 
 #require 'ruby-prof'
 $line_number = 0 # Global variable
